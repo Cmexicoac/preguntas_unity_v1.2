@@ -6,11 +6,16 @@ using TMPro;
 using System;
 using UnityEngine.UI;
 using Unity.VisualScripting.Dependencies.NCalc;
+using JetBrains.Annotations;
+
+
 
 public class BancoDePreguntas : MonoBehaviour
 {
     public Scrollbar scrollbar;
     public GameObject GridPrefab;
+    public Slider npreguntas;
+
     //private string filePath = "./Assets/BDP.csv";
     public List<string[]> data;
 
@@ -18,8 +23,9 @@ public class BancoDePreguntas : MonoBehaviour
     private void Start()
     {
         data = GameObject.Find("Quiz Manager").GetComponent<QuizManager>().data;
-
         spawnGrid();
+
+        npreguntas = GameObject.Find("npreguntas").GetComponent<Slider>();
     }
 
     public void WriteToCSV()
@@ -36,8 +42,11 @@ public class BancoDePreguntas : MonoBehaviour
             {
                 text[j] = input[j].text;
             }
+
             data.Add(string.Join(";", text));
         }
+
+        
 
         using (StreamWriter writer = new StreamWriter("./Assets/BDP.csv"))//File.AppendText(filePath))
         {
@@ -45,6 +54,18 @@ public class BancoDePreguntas : MonoBehaviour
             Debug.Log(line);
             writer.WriteLine(line);
         }
+
+
+        string filePath = "./Assets/npreguntas.txt"; // Specify the file path where you want to save the value.
+
+        // Write the slider value to the .txt file
+
+        File.WriteAllText(filePath, npreguntas.value.ToString());
+
+        Debug.Log("Slider value saved to " + filePath);
+
+
+
     }
 
     public void AddCell()
@@ -75,7 +96,6 @@ public class BancoDePreguntas : MonoBehaviour
 
                 RectTransform GridRT = Grid.GetComponent<RectTransform>();
                 GridRT.SetParent(gameObject.GetComponent<RectTransform>(), false);
-
                 GridRT.anchoredPosition = new Vector2(0, GridRT.anchoredPosition.y - (75 * i));
 
                 if (i != data.Count)

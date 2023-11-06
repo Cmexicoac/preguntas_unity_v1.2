@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using System.IO;
 using System.ComponentModel;
 using Unity.Burst.Intrinsics;
+using JetBrains.Annotations;
 
 public class QuizManager : MonoBehaviour
 {
@@ -30,6 +31,9 @@ public class QuizManager : MonoBehaviour
     public GameObject BancoDePreguntas;
     public Slider slider;
 
+    public Slider num_preguntas;
+    string textPath = "./Assets/npreguntas.txt";
+
     public GameObject Vida1;
     public GameObject Vida2;
 
@@ -40,6 +44,8 @@ public class QuizManager : MonoBehaviour
     public List<string[]> data = new List<string[]>();
     private string[][] preguntas;
 
+    public Text score;
+   
     private void Start()
     {
         Inicio.SetActive(true);
@@ -64,7 +70,17 @@ public class QuizManager : MonoBehaviour
         }
 
         preguntas = data.ToArray();
-        MezclarMatriz(preguntas);
+
+        num_preguntas.maxValue = preguntas.Length - 4;
+        num_preguntas.minValue = 4;
+
+        
+
+        num_preguntas.value = int.Parse(File.ReadAllText(textPath));
+
+        slider.maxValue = num_preguntas.value;
+
+    MezclarMatriz(preguntas);
     }
 
     public void BotonInicio()
@@ -88,13 +104,21 @@ public class QuizManager : MonoBehaviour
 
     public void ganaste()
     {
+       
         Quiz.SetActive(false);
-        if (puntuacion == 10)
+        if (puntuacion == num_preguntas.value)
         {
             Final.SetActive(true);
+            GameObject.Find("Score").GetComponent<Text>().text = "Score: " + puntuacion.ToString();
         }
         else if (vidas == 0)
+        {
             GameOver.SetActive(true);
+            GameObject.Find("Score").GetComponent<Text>().text = "Score: " + puntuacion.ToString();
+        }
+
+
+
     }
 
     public void correcto()
@@ -102,8 +126,8 @@ public class QuizManager : MonoBehaviour
         PreguntaActual++;
         puntuacion = puntuacion + 1;
         slider.value = puntuacion;
-        //Debug.Log(puntuacion);
         generarPregunta();
+        
     }
 
     public void incorrecto()
@@ -128,7 +152,7 @@ public class QuizManager : MonoBehaviour
         }
         //Debug.Log(vidas);
         generarPregunta();
-        
+
     }
     
 
@@ -146,8 +170,6 @@ public class QuizManager : MonoBehaviour
         BotonPista.SetActive(false);
         PistaEscrita.SetActive(true);
         
-
-
     }
 
     void definirRespuestas(int indiceDePregunta)
@@ -159,19 +181,7 @@ public class QuizManager : MonoBehaviour
             opciones[i].GetComponent<Respuestas>().esCorrecta = respuestas[i] == preguntas[indiceDePregunta][1] ? true : false;
             opciones[i].transform.GetChild(0).GetComponent<Text>().text = respuestas[i];
 
-            
-            
         }
-        /*for (int i = 0; i < opciones.Length; i++)
-        {
-            opciones[i].GetComponent<Respuestas>().esCorrecta = false;
-            opciones[i].transform.GetChild(0).GetComponent<Text>().text = PnR[PreguntaActual].Respuestas[i];
-
-            if (PnR[PreguntaActual].RespuestaCorrecta == i + 1)
-            {
-                opciones[i].GetComponent<Respuestas>().esCorrecta = true;
-            }
-        }*/
     }
 
     static void MezclarMatriz(string[][] matriz)
@@ -204,7 +214,7 @@ public class QuizManager : MonoBehaviour
     {
         PistaEscrita.SetActive(false);
 
-        if (vidas == 0 || puntuacion == 10)
+        if (vidas == 0 || puntuacion == num_preguntas.value)
         {
             Debug.Log("Fin del juego");
             ganaste();
@@ -212,8 +222,6 @@ public class QuizManager : MonoBehaviour
 
         else
         {
-
-
             TextoPreguntas.text = preguntas[PreguntaActual][0];
 
             tip.text = preguntas[PreguntaActual][5];
